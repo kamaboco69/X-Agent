@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { api, API_URL, fetchApi, getApiKey } from '@/lib/api'
+import { api, fetchApi } from '@/lib/api'
 import type { XAccount } from '@/lib/api'
 import Header from '@/components/layout/header'
 import { useCurrentAccountId } from '@/hooks/use-selected-account'
@@ -475,7 +475,7 @@ export default function CampaignPage() {
       if (mediaFiles.length > 0) {
         setUploading(true)
         for (const m of mediaFiles) {
-          const res = await api.media.upload(m.file, accountId)
+          const res = await api.media.upload(m.file)
           if (res.success) mediaIds.push(res.data.mediaId)
         }
         setUploading(false)
@@ -485,15 +485,16 @@ export default function CampaignPage() {
       //    CF Workers 同一アカウント間 fetch が 404 になるため、ブラウザ経由
       //    順序: ゲート作成(API) → LINE フォーム作成(ブラウザ) → リンク生成 → ツイート投稿(API)
       let campaignLink = ''
-      const xWorkerUrl = API_URL
+      // xWorkerUrl はルート相対パス（同一オリジン）
+      const xWorkerUrl = ''
 
       if (lineEnabled && lineConfigured) {
         // a. ゲートだけ先に作成（inactive、仮postId）
         const prepRes = await fetch(`${xWorkerUrl}/api/engagement-gates`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('xh_api_key')}` },
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            xAccountId: accountId,
             postId: `pending-${Date.now()}`,
             triggerType: 'repost',
             actionType: 'verify_only',
@@ -590,7 +591,6 @@ export default function CampaignPage() {
         // e. {link} 置換してツイート投稿（リンクなしなら {link} プレースホルダーを除去）
         const finalText = campaignLink ? text.trim().replace(/\{link\}/g, campaignLink) : text.trim().replace(/\{link\}/g, '').replace(/\n{2,}/g, '\n').trim()
         const tweetRes = await api.posts.create({
-          xAccountId: accountId,
           text: finalText,
           ...(mediaIds.length > 0 ? { mediaIds } : {}),
         })
@@ -617,7 +617,6 @@ export default function CampaignPage() {
       } else {
         // LINE連携なし
         const campaignRes = await api.campaigns.create({
-          xAccountId: accountId,
           text: text.trim(),
           ...(mediaIds.length > 0 ? { mediaIds } : {}),
           requireLike,

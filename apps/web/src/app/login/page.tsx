@@ -1,77 +1,66 @@
 'use client'
-import { useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { api } from '@/lib/api'
+import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
-  const [apiKey, setApiKey] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const { status } = useSession()
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  useEffect(() => {
+    if (status === 'authenticated') router.replace('/')
+  }, [status, router])
+
+  const handleSignIn = async () => {
     setLoading(true)
-    setError('')
-
-    try {
-      // Temporarily store key so api.health() picks it up
-      localStorage.setItem('xh_api_key', apiKey)
-
-      const res = await api.health()
-
-      if (res.success) {
-        router.push('/')
-      } else {
-        localStorage.removeItem('xh_api_key')
-        setError('APIキーが正しくありません')
-      }
-    } catch {
-      localStorage.removeItem('xh_api_key')
-      setError('接続に失敗しました')
-    } finally {
-      setLoading(false)
-    }
+    await signIn('twitter', { callbackUrl: '/' })
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1D9BF0' }}>
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg mx-auto mb-3" style={{ backgroundColor: '#1D9BF0' }}>
-            X
+    <div className="min-h-screen flex items-center justify-center bg-gray-950">
+      <div className="w-full max-w-sm px-6">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600 mb-4">
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
-          <h1 className="text-xl font-bold text-gray-900">X Harness</h1>
-          <p className="text-sm text-gray-500 mt-1">Xアカウント自動化ダッシュボード</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">X Ops</h1>
+          <p className="text-sm text-gray-400 mt-1">Xアカウント運用ダッシュボード</p>
         </div>
 
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label htmlFor="api-key" className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-            <input
-              id="api-key"
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="APIキーを入力"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              autoFocus
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 mb-4">{error}</p>
-          )}
+        {/* Sign in card */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <p className="text-sm text-gray-300 text-center mb-6">
+            Xアカウントでサインインしてダッシュボードにアクセス
+          </p>
 
           <button
-            type="submit"
-            disabled={loading || !apiKey}
-            className="w-full py-3 text-white font-medium rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: '#1D9BF0' }}
+            onClick={handleSignIn}
+            disabled={loading || status === 'loading'}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'ログイン中...' : 'ログイン'}
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-gray-400 border-t-gray-900 rounded-full animate-spin" />
+            ) : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            )}
+            {loading ? 'サインイン中...' : 'X でサインイン'}
           </button>
-        </form>
+
+          <p className="text-xs text-gray-500 text-center mt-4">
+            サインインすることで、XのOAuth 2.0認証を使用します
+          </p>
+        </div>
+
+        <p className="text-xs text-gray-600 text-center mt-6">
+          X Ops — Powered by X API v2
+        </p>
       </div>
     </div>
   )

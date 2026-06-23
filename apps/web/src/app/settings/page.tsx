@@ -19,7 +19,6 @@ export default function SettingsPage() {
   const [autoLoading, setAutoLoading] = useState(true)
   const [autoSaving, setAutoSaving] = useState(false)
 
-  // New connection form
   const [name, setName] = useState('')
   const [url, setUrl] = useState('')
   const [apiKey, setApiKey] = useState('')
@@ -36,9 +35,7 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       const res = await fetchApi<{ success: boolean; data: Record<string, string> }>('/api/settings')
-      if (res.success) {
-        setAutoEnabled(res.data.auto_features_enabled === 'true')
-      }
+      if (res.success) setAutoEnabled(res.data.auto_features_enabled === 'true')
     } catch { /* ignore */ }
     setAutoLoading(false)
   }
@@ -48,8 +45,7 @@ export default function SettingsPage() {
     if (newValue && !confirm(
       '⚠️ 自動機能を有効にすると X API 使用料が発生します。\n\n' +
       '・エンゲージメントゲートの自動ポーリング（$0.005/回）\n' +
-      '・予約投稿の自動実行（$0.010/回）\n' +
-      '・ステップシーケンスの自動実行\n\n' +
+      '・予約投稿の自動実行（$0.010/回）\n\n' +
       '5分ごとに課金が発生します。有効にしますか？'
     )) return
     setAutoSaving(true)
@@ -91,7 +87,6 @@ export default function SettingsPage() {
   const handleTest = async (conn: LineConnection) => {
     setTestResults(prev => ({ ...prev, [conn.id]: '...' }))
     try {
-      // Need to fetch full connection with api_key
       const full = await fetchApi<{ success: boolean; data: LineConnection }>(`/api/line-connections/${conn.id}`)
       if (!full.success || !full.data.api_key) {
         setTestResults(prev => ({ ...prev, [conn.id]: '❌ API Key が取得できません' }))
@@ -100,10 +95,7 @@ export default function SettingsPage() {
       const res = await fetch(`${conn.worker_url}/api/friends?limit=1`, {
         headers: { Authorization: `Bearer ${full.data.api_key}` },
       })
-      setTestResults(prev => ({
-        ...prev,
-        [conn.id]: res.ok ? '✅ 接続OK' : `❌ ${res.status}`,
-      }))
+      setTestResults(prev => ({ ...prev, [conn.id]: res.ok ? '✅ 接続OK' : `❌ ${res.status}` }))
     } catch (err) {
       setTestResults(prev => ({ ...prev, [conn.id]: `❌ ${err}` }))
     }
@@ -111,76 +103,71 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <Header title="L Harness 設定" description="自動機能・L Harness 接続の管理" />
+      <Header title="設定" description="自動機能・L Harness 接続の管理" />
 
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-5">
         {/* 自動機能トグル */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-gray-900 border border-gray-800/60 rounded-2xl p-5">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">自動機能</h2>
-              <p className="text-xs text-gray-500 mt-1">
-                エンゲージメントゲート・予約投稿・ステップシーケンスの自動実行
+              <p className="text-sm font-semibold text-white">自動機能</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                エンゲージメントゲート・予約投稿の自動実行
               </p>
             </div>
             {autoLoading ? (
-              <div className="w-12 h-6 bg-gray-200 rounded-full animate-pulse" />
+              <div className="w-11 h-6 bg-gray-800 rounded-full animate-pulse shrink-0" />
             ) : (
               <button
                 onClick={toggleAuto}
                 disabled={autoSaving}
-                className={`relative w-12 h-6 rounded-full transition-colors ${autoEnabled ? 'bg-green-500' : 'bg-gray-300'} ${autoSaving ? 'opacity-50' : ''}`}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 ${autoEnabled ? 'bg-violet-600' : 'bg-gray-700'}`}
               >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoEnabled ? 'translate-x-6' : ''}`} />
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoEnabled ? 'translate-x-5' : ''}`} />
               </button>
             )}
           </div>
-          {!autoEnabled && !autoLoading && (
-            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-700">
-                <strong>オフ</strong> — cron ジョブは停止中です。ゲートのポーリング・予約投稿・ステップシーケンスは実行されません。
-                API 使用料は発生しません。
-              </p>
-            </div>
-          )}
-          {autoEnabled && !autoLoading && (
-            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-xs text-green-700">
-                <strong>オン</strong> — 5分ごとに自動実行されます。X API 使用料が発生します（Read: $0.005/回、Write: $0.010/回）。
-              </p>
+          {!autoLoading && (
+            <div className={`mt-3 p-3 rounded-xl text-xs ${autoEnabled ? 'bg-violet-950/50 border border-violet-800/40 text-violet-300' : 'bg-gray-800/60 border border-gray-700/40 text-gray-500'}`}>
+              {autoEnabled
+                ? '5分ごとに自動実行されます。X API 使用料が発生します（Read: $0.005/回、Write: $0.010/回）。'
+                : 'オフ — cron ジョブは停止中です。API 使用料は発生しません。'}
             </div>
           )}
         </div>
 
         {/* 登録済み一覧 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">L Harness 接続先</h2>
-
+        <div className="bg-gray-900 border border-gray-800/60 rounded-2xl p-5">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">L Harness 接続先</p>
           {loading ? (
-            <p className="text-sm text-gray-400">読み込み中...</p>
+            <div className="space-y-2">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="h-14 bg-gray-800 rounded-xl animate-pulse" />
+              ))}
+            </div>
           ) : connections.length === 0 ? (
-            <p className="text-sm text-gray-400">接続先が未登録です</p>
+            <p className="text-sm text-gray-500 py-4 text-center">接続先が未登録です</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {connections.map((conn) => (
-                <div key={conn.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">{conn.name}</p>
-                    <p className="text-xs text-gray-400">{conn.worker_url}</p>
+                <div key={conn.id} className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-800/60 rounded-xl border border-gray-700/60">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{conn.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{conn.worker_url}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     {testResults[conn.id] && (
-                      <span className="text-xs">{testResults[conn.id]}</span>
+                      <span className="text-xs text-gray-400">{testResults[conn.id]}</span>
                     )}
                     <button
                       onClick={() => handleTest(conn)}
-                      className="px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50"
+                      className="px-2.5 py-1 text-xs text-gray-400 bg-gray-800 border border-gray-700 rounded-lg hover:text-gray-200 hover:border-gray-600 transition-colors"
                     >
                       テスト
                     </button>
                     <button
                       onClick={() => handleDelete(conn.id)}
-                      className="px-2 py-1 text-xs text-red-500 bg-white border border-red-200 rounded hover:bg-red-50"
+                      className="px-2.5 py-1 text-xs text-red-400 bg-red-950/40 border border-red-800/40 rounded-lg hover:border-red-700 transition-colors"
                     >
                       削除
                     </button>
@@ -192,34 +179,34 @@ export default function SettingsPage() {
         </div>
 
         {/* 新規追加 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-sm font-semibold text-gray-800 mb-3">接続先を追加</h2>
+        <div className="bg-gray-900 border border-gray-800/60 rounded-2xl p-5">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">接続先を追加</p>
           <div className="space-y-3">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="名前（例: 本番、テスト環境）"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="Worker URL（例: https://line-crm-worker.workers.dev）"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="API Key（lh_xxxxxxxx）"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
             <button
               onClick={handleAdd}
               disabled={saving || !name || !url || !apiKey}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl disabled:opacity-40 transition-colors"
             >
               {saving ? '追加中...' : '追加'}
             </button>

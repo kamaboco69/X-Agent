@@ -1,33 +1,34 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
-  const [checked, setChecked] = useState(false)
 
   useEffect(() => {
-    if (pathname === '/login') {
-      setChecked(true)
-      return
-    }
-
-    const key = localStorage.getItem('xh_api_key')
-    if (!key) {
+    if (pathname === '/login') return
+    if (status === 'unauthenticated') {
       router.replace('/login')
-      return
     }
-    setChecked(true)
-  }, [pathname, router])
+  }, [status, pathname, router])
 
-  if (!checked) {
+  if (pathname === '/login') return <>{children}</>
+
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-[3px] border-gray-200 border-t-blue-500 rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin w-9 h-9 border-[3px] border-gray-700 border-t-violet-500 rounded-full" />
+          <p className="text-sm text-gray-500">読み込み中...</p>
+        </div>
       </div>
     )
   }
+
+  if (status === 'unauthenticated') return null
 
   return <>{children}</>
 }

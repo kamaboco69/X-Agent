@@ -258,7 +258,7 @@ export default function PostsPage() {
     try {
       const ids: string[] = []
       for (const m of mediaFiles) {
-        const res = await api.media.upload(m.file, selectedAccountId)
+        const res = await api.media.upload(m.file)
         if (res.success) ids.push(res.data.mediaId)
       }
       return ids
@@ -279,7 +279,6 @@ export default function PostsPage() {
 
       if (texts.length === 1) {
         const res = await api.posts.create({
-          xAccountId: selectedAccountId,
           text: texts[0],
           ...(immQuoteMode && immQuoteId.trim() ? { quoteTweetId: immQuoteId.trim() } : {}),
           ...(mediaIds.length > 0 ? { mediaIds } : {}),
@@ -296,7 +295,6 @@ export default function PostsPage() {
         }
       } else {
         const res = await api.posts.thread({
-          xAccountId: selectedAccountId,
           texts,
           ...(mediaIds.length > 0 ? { mediaIds } : {}),
         })
@@ -324,7 +322,6 @@ export default function PostsPage() {
     setSchSuccess('')
     try {
       const res = await api.posts.schedule({
-        xAccountId: selectedAccountId,
         text: schText.trim(),
         scheduledAt: new Date(schAt).toISOString(),
       })
