@@ -63,7 +63,7 @@ export default function MessagesPage() {
     if (!accountId) return
     setConvsLoading(true)
     try {
-      const res = await api.dm.conversations(accountId)
+      const res = await api.dm.conversations()
       if (res.success) setConversations(res.data)
     } catch {
       setConversations([])
@@ -78,7 +78,7 @@ export default function MessagesPage() {
     setMsgsLoading(true)
     setMsgsCursor(null)
     try {
-      const res = await api.dm.messages(convId, accountId)
+      const res = await api.dm.messages(convId)
       if (res.success) {
         setMessages(res.data.messages)
         setMsgsCursor(res.data.nextCursor ?? null)
@@ -95,7 +95,7 @@ export default function MessagesPage() {
     if (!selectedConvId || !selectedAccountId || !msgsCursor) return
     setLoadingOlder(true)
     try {
-      const res = await api.dm.messages(selectedConvId, selectedAccountId, msgsCursor)
+      const res = await api.dm.messages(selectedConvId, msgsCursor)
       if (res.success) {
         // Older messages come in reverse chronological, reversed by API to chronological
         // Prepend them before current messages
@@ -146,7 +146,6 @@ export default function MessagesPage() {
     setSendError('')
     try {
       const res = await api.dm.send({
-        xAccountId: selectedAccountId,
         participantId: conv.participantId,
         text: sendText.trim(),
       })
@@ -182,7 +181,6 @@ export default function MessagesPage() {
         participantId = lookupRes.data.id
       }
       const res = await api.dm.send({
-        xAccountId: selectedAccountId,
         participantId,
         text: newDmText.trim(),
       })

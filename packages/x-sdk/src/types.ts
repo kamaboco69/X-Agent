@@ -21,6 +21,10 @@ export interface XTweet {
 
 export interface XApiResponse<T> {
   data: T;
+  includes?: {
+    users?: XUser[];
+    tweets?: XTweet[];
+  };
   meta?: {
     result_count?: number;
     next_token?: string;

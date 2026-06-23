@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getXClientForSession, incrementUsage } from '@/lib/api-helpers'
-import { auth } from '@/lib/auth'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ conversationId: string }> }) {
   const { client, account, error } = await getXClientForSession()
   if (error) return error
 
-  const session = await auth()
   const { conversationId } = await params
   const cursor = new URL(req.url).searchParams.get('cursor') ?? undefined
 
@@ -16,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ conv
       id: m.id,
       text: m.text ?? '',
       senderId: m.sender_id,
-      isMe: m.sender_id === session!.xUserId,
+      isMe: m.sender_id === account.x_user_id,
       createdAt: m.created_at,
     }))
     incrementUsage(account.id, 'dm_messages')
@@ -24,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ conv
       success: true,
       data: {
         messages,
-        myUserId: session!.xUserId,
+        myUserId: account.x_user_id,
         nextCursor: result.meta?.next_token,
       },
     })

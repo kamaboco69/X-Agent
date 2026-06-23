@@ -11,14 +11,15 @@ declare module 'next-auth' {
   }
 }
 
-declare module 'next-auth/jwt' {
-  interface JWT {
-    accessToken?: string
-    refreshToken?: string
-    xUserId?: string
-    xAccountDbId?: string
-    username?: string
-  }
+// JWT shape carried through callbacks (augmenting 'next-auth/jwt' is unreliable
+// under bundler module resolution, so we cast the token locally instead).
+interface AppJWT {
+  accessToken?: string
+  refreshToken?: string
+  xUserId?: string
+  xAccountDbId?: string
+  username?: string
+  name?: string | null
 }
 
 function getSupabaseAdmin() {
@@ -33,7 +34,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     Twitter({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: '2.0',
     }),
   ],
   callbacks: {
@@ -83,32 +83,34 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, account, profile }) {
+      const t = token as AppJWT
       if (account) {
-        token.accessToken = account.access_token
-        token.refreshToken = account.refresh_token
-        token.xUserId = account.providerAccountId
-        token.username = (profile as Record<string, any>)?.data?.username ?? token.name ?? ''
+        t.accessToken = account.access_token
+        t.refreshToken = account.refresh_token
+        t.xUserId = account.providerAccountId
+        t.username = (profile as Record<string, any>)?.data?.username ?? t.name ?? ''
       }
 
       // Resolve the internal Supabase row ID once and cache in JWT
-      if (token.xUserId && !token.xAccountDbId) {
+      if (t.xUserId && !t.xAccountDbId) {
         const supabase = getSupabaseAdmin()
         const { data } = await supabase
           .from('x_accounts')
           .select('id')
-          .eq('x_user_id', token.xUserId)
+          .eq('x_user_id', t.xUserId)
           .single()
-        if (data) token.xAccountDbId = data.id
+        if (data) t.xAccountDbId = data.id
       }
 
       return token
     },
 
     async session({ session, token }) {
-      session.accessToken = token.accessToken ?? ''
-      session.xUserId = token.xUserId ?? ''
-      session.xAccountDbId = token.xAccountDbId ?? ''
-      session.username = token.username ?? ''
+      const t = token as AppJWT
+      session.accessToken = t.accessToken ?? ''
+      session.xUserId = t.xUserId ?? ''
+      session.xAccountDbId = t.xAccountDbId ?? ''
+      session.username = t.username ?? ''
       return session
     },
   },

@@ -158,7 +158,7 @@ export default function PostsPage() {
     }
     setDeletingIds((prev) => new Set(prev).add(tweetId))
     try {
-      const res = await api.posts.delete(tweetId, historyAccountId)
+      const res = await api.posts.delete(tweetId)
       if (res.success) {
         // Refresh from cursor=undefined (first page) instead of just filtering
         // out the row. Filtering would leave nextCursor stale: deleting the

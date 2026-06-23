@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getXClientForSession, incrementUsage } from '@/lib/api-helpers'
-import { auth } from '@/lib/auth'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ tweetId: string }> }) {
   const { client, account, error } = await getXClientForSession()
   if (error) return error
 
-  const session = await auth()
   const { tweetId } = await params
 
   try {
-    await client.likeTweet(session!.xUserId, tweetId)
+    await client.likeTweet(account.x_user_id, tweetId)
     incrementUsage(account.id, 'like')
 
     const supabase = getSupabaseAdmin()
-    await supabase.from('engagement_actions').insert({
+    await supabase.from('engagement_actions').upsert({
       id: crypto.randomUUID(),
       x_account_id: account.id,
       tweet_id: tweetId,
       action_type: 'like',
       created_at: new Date().toISOString(),
-    }).onConflict('x_account_id,tweet_id,action_type' as any).ignore()
+    }, { onConflict: 'x_account_id,tweet_id,action_type', ignoreDuplicates: true })
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

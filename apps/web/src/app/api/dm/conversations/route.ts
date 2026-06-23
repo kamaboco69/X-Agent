@@ -13,13 +13,15 @@ export async function GET() {
     const convMap = new Map<string, any>()
     for (const event of result.data ?? []) {
       const convId = event.dm_conversation_id
-      if (!convMap.has(convId) || new Date(event.created_at) > new Date(convMap.get(convId).lastMessageAt)) {
+      if (!convId) continue
+      const createdAt = event.created_at ?? new Date(0).toISOString()
+      if (!convMap.has(convId) || new Date(createdAt) > new Date(convMap.get(convId).lastMessageAt)) {
         convMap.set(convId, {
           conversationId: convId,
-          participantId: event.sender_id,
+          participantId: event.sender_id ?? '',
           lastMessage: event.text ?? '',
-          lastMessageAt: event.created_at,
-          senderId: event.sender_id,
+          lastMessageAt: createdAt,
+          senderId: event.sender_id ?? '',
           participantUsername: null,
           participantDisplayName: null,
           participantProfileImageUrl: null,

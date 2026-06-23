@@ -43,7 +43,7 @@ function QuoteRow({ quote, xAccountId, actions }: { quote: MentionReply; xAccoun
   const handleLike = async () => {
     setLiking(true)
     try {
-      await api.posts.like(quote.id, xAccountId)
+      await api.posts.like(quote.id)
       setLiked(true)
     } catch { /* silent */ }
     finally { setLiking(false) }
@@ -52,7 +52,7 @@ function QuoteRow({ quote, xAccountId, actions }: { quote: MentionReply; xAccoun
   const handleRetweet = async () => {
     setRetweeting(true)
     try {
-      await api.posts.retweet(quote.id, xAccountId)
+      await api.posts.retweet(quote.id)
       setRetweeted(true)
     } catch { /* silent */ }
     finally { setRetweeting(false) }
@@ -220,7 +220,7 @@ export default function QuotesPage() {
       // Fetch quotes for each tweet in parallel (API + DB merged on server)
       const results = await Promise.allSettled(
         tweets.map(async (t: TweetHistory) => {
-          const res = await api.posts.quotes(t.id, accountId)
+          const res = await api.posts.quotes(t.id)
           return { tweetId: t.id, tweetText: t.text, quotes: res.success ? res.data : [] }
         })
       )
@@ -236,7 +236,7 @@ export default function QuotesPage() {
       const allQuoteIds = quoteGroups.flatMap((g) => g.quotes.map((q) => q.id))
       if (allQuoteIds.length > 0) {
         try {
-          const actionsRes = await api.posts.getActions(accountId, allQuoteIds)
+          const actionsRes = await api.posts.getActions(allQuoteIds)
           if (actionsRes.success) setActionsMap(actionsRes.data)
         } catch { /* ignore */ }
       }

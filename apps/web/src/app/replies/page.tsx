@@ -41,7 +41,7 @@ function ReplyRow({ reply, xAccountId, onSuccess, actions }: ReplyRowProps) {
     if (liked || liking || !xAccountId) return
     setLiking(true)
     try {
-      const res = await api.posts.like(reply.id, xAccountId)
+      const res = await api.posts.like(reply.id)
       if (res.success) setLiked(true)
     } catch { /* ignore duplicate like errors */ setLiked(true) }
     finally { setLiking(false) }
@@ -51,7 +51,7 @@ function ReplyRow({ reply, xAccountId, onSuccess, actions }: ReplyRowProps) {
     if (retweeted || retweeting || !xAccountId) return
     setRetweeting(true)
     try {
-      const res = await api.posts.retweet(reply.id, xAccountId)
+      const res = await api.posts.retweet(reply.id)
       if (res.success) setRetweeted(true)
     } catch { /* ignore duplicate retweet errors */ setRetweeted(true) }
     finally { setRetweeting(false) }
@@ -287,7 +287,7 @@ export default function RepliesPage() {
         const ids = res.data.map((m) => m.id)
         if (ids.length > 0) {
           try {
-            const actionsRes = await api.posts.getActions(accountId, ids)
+            const actionsRes = await api.posts.getActions(ids)
             if (actionsRes.success) setActionsMap(actionsRes.data)
           } catch { /* ignore actions fetch failure */ }
         }
