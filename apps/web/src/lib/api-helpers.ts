@@ -1,4 +1,4 @@
-import { auth } from './auth'
+import { auth } from '@/auth'
 import { getSupabaseAdmin } from './supabase'
 import { XClient } from '@x-harness/x-sdk'
 import { NextResponse } from 'next/server'

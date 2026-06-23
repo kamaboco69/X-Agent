@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSessionOrError } from '@/lib/api-helpers'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { auth } from '@/lib/auth'
 
 export async function GET() {
   const { error } = await getSessionOrError()
