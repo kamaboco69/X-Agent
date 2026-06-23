@@ -169,7 +169,7 @@ export default function DashboardPage() {
     <div>
       <Header
         title={session?.username ? `ようこそ、@${session.username}` : 'ダッシュボード'}
-        description="X Ops の概要"
+        description="X PIX の概要"
       />
 
       {error && (

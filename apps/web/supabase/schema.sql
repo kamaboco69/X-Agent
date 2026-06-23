@@ -1,4 +1,4 @@
--- X Ops — Supabase (PostgreSQL) Schema
+-- X PIX — Supabase (PostgreSQL) Schema
 -- Run this in the Supabase SQL editor to set up your database
 
 -- X Accounts

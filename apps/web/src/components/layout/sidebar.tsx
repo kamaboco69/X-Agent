@@ -72,7 +72,7 @@ export default function Sidebar() {
           </svg>
         </div>
         {!collapsed && (
-          <span className="text-sm font-bold text-white tracking-tight select-none">X Ops</span>
+          <span className="text-sm font-bold text-white tracking-tight select-none">X PIX</span>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}

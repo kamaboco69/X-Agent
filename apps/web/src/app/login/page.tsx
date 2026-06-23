@@ -28,7 +28,7 @@ export default function LoginPage() {
                 d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">X Ops</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">X PIX</h1>
           <p className="text-sm text-gray-400 mt-1">Xアカウント運用ダッシュボード</p>
         </div>
 
@@ -59,7 +59,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-xs text-gray-600 text-center mt-6">
-          X Ops — Powered by X API v2
+          X PIX — Powered by X API v2
         </p>
       </div>
     </div>

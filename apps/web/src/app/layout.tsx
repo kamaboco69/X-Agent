@@ -4,7 +4,7 @@ import AppShell from '@/components/app-shell'
 import NextAuthSessionProvider from '@/components/session-provider'
 
 export const metadata: Metadata = {
-  title: 'X Ops',
+  title: 'X PIX',
   description: 'Xアカウント運用ダッシュボード',
 }
 
